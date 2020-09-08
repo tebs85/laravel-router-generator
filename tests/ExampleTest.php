@@ -45,9 +45,8 @@ class ExampleTest extends TestCase
 
         foreach ($files as $file) {
             $file_name = explode('.', $file);
-            print "App\\Http\\Controllers\\" . $file_name[0];
+            // print "App\\Http\\Controllers\\" . $file_name[0];
             $methods = (new ReflectionClass('App\\Http\\Controllers\\' . $file_name[0]))->getMethods(ReflectionMethod::IS_PUBLIC);
-            dd($methods);
 
             foreach ($methods as $method) {
                 if ($method->class == $$file_name[0] && $method->name != '__contruct') {
