@@ -17,13 +17,13 @@ composer require eightyfour600/laravel-router-generator
 
 ## Usage
 
-``` php
+```php
 // Usage description here
 ```
 
 ### Testing
 
-``` bash
+```bash
 composer test
 ```
 
@@ -41,13 +41,9 @@ If you discover any security related issues, please email tebogo@eightyfour600.c
 
 ## Credits
 
-- [Tebogo Moloi](https://github.com/eightyfour600)
-- [All Contributors](../../contributors)
+-   [Tebogo Moloi](https://github.com/eightyfour600)
+-   [All Contributors](../../contributors)
 
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-## Laravel Package Boilerplate
-
-This package was generated using the [Laravel Package Boilerplate](https://laravelpackageboilerplate.com).
