@@ -1,0 +1,54 @@
+{
+    "name": "eightyfour600/laravel-router-generator",
+    "description": "Package that generates routes from controllers",
+    "keywords": [
+        "eightyfour600",
+        "laravel-router-generator"
+    ],
+    "homepage": "https://github.com/eightyfour600/laravel-router-generator",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Tebogo Moloi",
+            "email": "tebogo@eightyfour600.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "illuminate/support": "^6.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^4.0",
+        "phpunit/phpunit": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Eightyfour600\\LaravelRouterGenerator\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Eightyfour600\\LaravelRouterGenerator\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Eightyfour600\\LaravelRouterGenerator\\LaravelRouterGeneratorServiceProvider"
+            ],
+            "aliases": {
+                "LaravelRouterGenerator": "Eightyfour600\\LaravelRouterGenerator\\LaravelRouterGeneratorFacade"
+            }
+        }
+    }
+}
