@@ -45,38 +45,39 @@ class ExampleTest extends TestCase
 
         foreach ($files as $file) {
             $file_name = explode('.', $file);
-            // print "App\\Http\\Controllers\\" . $file_name[0];
-            $methods = (new ReflectionClass('App\\Http\\Controllers\\' . $file_name[0]))->getMethods(ReflectionMethod::IS_PUBLIC);
+            $class = new ReflectionClass('App\\Http\\Controllers\\' . $file_name[0]);
+            $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
 
             foreach ($methods as $method) {
-                if ($method->class == $$file_name[0] && $method->name != '__contruct') {
-                    switch ($method) {
+                $resources = preg_split('/(?=[A-Z])/', lcfirst($class));
+                if ($method->class == $file_name[0] && $method->name != '__contruct') {
+                    switch ($method->name) {
                         case 'index':
-                            # code...
+                            Route::get(Str::plural($resources[0], 2), $file_name[0] . '@' . $method->name);
                             break;
 
                         case 'create':
-                            # code...
+                            Route::get(Str::plural($resources[0], 2) .'create', $file_name[0] . '@' . $method->name);
                             break;
 
                         case 'store':
-                            # code...
+                            Route::post(Str::plural($resources[0], 2) .'', $file_name[0] . '@' . $method->name);
                             break;
 
                         case 'show':
-                            # code...
+                            Route::get(Str::plural($resources[0], 2) .'{id}', $file_name[0] . '@' . $method->name);
                             break;
 
                         case 'edit':
-                            # code...
+                            Route::get(Str::plural($resources[0], 2) .'{id}/edit', $file_name[0] . '@' . $method->name);
                             break;
 
                         case 'update':
-                            # code...
+                            Route::put(Str::plural($resources[0], 2) .'{id}', $file_name[0] . '@' . $method->name);
                             break;
 
                         case 'destroy':
-                            # code...
+                            Route::delete(Str::plural($resources[0], 2) .'{id}', $file_name[0] . '@' . $method->name);
                             break;
 
                         default:
@@ -87,6 +88,7 @@ class ExampleTest extends TestCase
 
             }
         }
-        $this->assertTrue($directory->exists);
+        // app_routes();
+        // $this->assertTrue($directory->exists);
     }
 }
