@@ -2,9 +2,13 @@
 
 namespace Eightyfour600\LaravelRouterGenerator;
 
-use Illuminate\Routing\Route;
 use Exception;
 use Route as Router;
+use Illuminate\Support\Arr;
+use Illuminate\Routing\Route;
+use Eightyfour600\LaravelRouterGenerator\LaravelRouterActionGenerator;
+use Eightyfour600\LaravelRouterGenerator\Exceptions\LaravelRouterFileNotFoundException;
+use Eightyfour600\LaravelRouterGenerator\Exceptions\LaravelRouterHasRegisteredException;
 class LaravelRouterGenerator extends Route
 {
     public $available_methods = [
@@ -31,7 +35,8 @@ class LaravelRouterGenerator extends Route
 	public function getActionName()
 	{
 		$action = $this->getAction();
-		if(is_string($action['uses'])) {
+
+		if (is_string($action['uses'])) {
 			return $action['uses'];
 		}
 
@@ -41,7 +46,8 @@ class LaravelRouterGenerator extends Route
 	public function getFiltersBefore()
 	{
 		$action = $this->getAction();
-		if(!isset($action['before'])) return '';
+
+		if (!isset($action['before'])) return '';
 
 		return is_array($action['before'])? implode('|', $action['before']) : $action['before'];
 	}
@@ -49,14 +55,14 @@ class LaravelRouterGenerator extends Route
 	public function getFiltersAfter()
 	{
 		$action = $this->getAction();
-		if(!isset($action['after'])) return '';
+		if (!isset($action['after'])) return '';
 
 		return is_array($action['after'])? implode('|', $action['after']) : $action['after'];
 	}
 
 	public function getMethodsString()
 	{
-		$methods = $this->getMethods();
+		$methods = $this->methods;
 
 		foreach($methods as $i => $method) {
 			$methods[$i] = strtoupper($method);
@@ -76,30 +82,31 @@ class LaravelRouterGenerator extends Route
 
 	public function getActionGenerator()
 	{
-		if(!$this->action_generator) {
-			$this->action_generator = new RouteActionGenerator($this);
+		if (!$this->action_generator) {
+			$this->action_generator = new LaravelRouterActionGenerator($this);
 		}
 
 		return $this->action_generator;
 	}
 
 	public function generate($route_file, $generate_action = true) {
-		if($this->routeHasRegistered()) {
+
+		if ($this->routeHasRegistered()) {
 			$methods = $this->getMethodsString();
 			$uri = $this->resolvedUri();
-			throw new RouteHasRegisteredException("Route '{$methods} {$uri}' has registered before");
+			throw new LaravelRouterHasRegisteredException("Route '{$methods} {$uri}' has registered before");
 		}
 
 		$this->generateRoute($route_file);
 
-		if($generate_action) {
+		if ($generate_action) {
 			$this->generateRouteAction();
 		}
 	}
 
 	public function generateRouteAction($controller_file = null)
 	{
-		if( ! $this->needGenerateRouteAction()) {
+		if (!$this->needGenerateRouteAction()) {
 			return false;
 		}
 
@@ -109,7 +116,7 @@ class LaravelRouterGenerator extends Route
 	protected function generateRoute($route_file)
 	{
 		if (!file_exists($route_file)) {
-			throw new RoutesFileNotFoundException("Cannot generate route, target route file not found");
+			throw new LaravelRouterFileNotFoundException("Cannot generate route, target route file not found");
 		}
 
 		$route_code = $this->makeRouteCode();
@@ -122,11 +129,11 @@ class LaravelRouterGenerator extends Route
 		$conditions = $this->getConditions();
 		$action = $this->getAction();
 		$uri = $this->resolvedUri();
-		$methods = $this->getMethods();
+		$methods = $this->methods;
 		$method = strtolower($methods[0]);
 
-		$before_filters = array_get($action, 'before');
-		$after_filters = array_get($action, 'after');
+		$before_filters = Arr::get($action, 'before');
+		$after_filters = Arr::get($action, 'after');
 
 		$route_action = [
 			'as' => $this->getName(),
@@ -138,14 +145,14 @@ class LaravelRouterGenerator extends Route
 		$action_arr_def = array();
 
 		foreach ($route_action as $key => $value) {
-			if(is_string($value)) {
+			if (is_string($value)) {
 				$action_arr_def[] = "'{$key}' => '{$value}'";
 			}
 		}
 
 		$only_uses = true;
 		foreach ($route_action as $key => $value) {
-			if($key != "uses" AND !empty($value)) {
+			if ($key != "uses" AND !empty($value)) {
 				$only_uses = false;
 			}
 		}
@@ -153,7 +160,7 @@ class LaravelRouterGenerator extends Route
 		$actions_str = implode(",\n\r\t", $action_arr_def);
 
 		$route_data = $only_uses? "'".$route_action['uses']."'" : "[\n\r\t{$actions_str}\n\r\t]";
-		$code = "// generated route\nRoute::{$method}('{$uri}', ".$route_data.")";
+		$code = "// Laravel Router generated route\nRoute::{$method}('{$uri}', ".$route_data.")";
 
 		foreach ($conditions as $param => $condition) {
 			$code .= "\n\r\t->where('{$param}', '{$condition}')";
@@ -193,7 +200,7 @@ class LaravelRouterGenerator extends Route
 	{
 		$route_action = $this->getActionName();
 
-		if( ! $this->isUsingController()) {
+		if (!$this->isUsingController()) {
 			$params_code = $this->makeParamsCode();
 			$route_action = "function({$params_code}){\n\r\t\t\t\n\r\t}";
 		}
@@ -203,7 +210,7 @@ class LaravelRouterGenerator extends Route
 
 	public function parseParams()
 	{
-		$uri = $this->getUri();
+		$uri = $this->uri();
 		preg_match_all("/{(?<params>\w+)(\?(=(?<default>\S+))?)?}/", $uri, $match);
 
 		$route_params_key = $match['params'];
@@ -212,9 +219,9 @@ class LaravelRouterGenerator extends Route
 		$route_params = array();
 		foreach($route_params_key as $i => $key) {
 			// check if parameter is optional
-			if(preg_match('/\{'.$key.'\?/', $uri)) {
+			if (preg_match('/\{'.$key.'\?/', $uri)) {
 				$value = $route_params_value[$i];
-				if(in_array($value, ['false','true','array()','null']) OR is_numeric($value)) {
+				if (in_array($value, ['false','true','array()','null']) OR is_numeric($value)) {
 					$route_params[$key] = $value;
  				} else {
 					$route_params[$key] = "'{$value}'";
@@ -229,7 +236,7 @@ class LaravelRouterGenerator extends Route
 
 	public function resolvedUri()
 	{
-		$uri = $this->getUri();
+		$uri = $this->uri();
 		return "/".ltrim(preg_replace("/\=\S+(})/", "$1", $uri), "/");
 	}
 
@@ -240,7 +247,7 @@ class LaravelRouterGenerator extends Route
 		list($method) = explode('|', $this->getMethodsString(), 1);
 
 		foreach ($routes as $route) {
-			if(ltrim($uri,"/") == ltrim($route->getUri(),"/") && in_array($method, $route->getMethods())) {
+			if (ltrim($uri,"/") == ltrim($route->uri(),"/") && in_array($method, $route->methods)) {
 				return true;
 			}
 		}
@@ -250,7 +257,7 @@ class LaravelRouterGenerator extends Route
 
 	public static function makeFromRoute(Route $route)
 	{
-		$route_generator = new static($route->getMethods(), $route->getUri(), $route->getAction());
+		$route_generator = new static($route->methods, $route->uri(), $route->getAction());
 		return $route_generator;
 	}
 }
