@@ -3,6 +3,7 @@
 namespace Eightyfour600\LaravelRouterGenerator;
 
 use Illuminate\Support\ServiceProvider;
+use Eightyfour600\LaravelRouterGenerator\Console\Commands;
 
 class LaravelRouterGeneratorServiceProvider extends ServiceProvider
 {
@@ -17,7 +18,7 @@ class LaravelRouterGeneratorServiceProvider extends ServiceProvider
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'laravel-router-generator');
         // $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-router-generator');
         // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
+        $this->loadRoutesFrom(__DIR__.'/Routes/routes.php');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -40,7 +41,9 @@ class LaravelRouterGeneratorServiceProvider extends ServiceProvider
             ], 'lang');*/
 
             // Registering package commands.
-            // $this->commands([]);
+            $this->commands([
+                LaravelRouterGeneratorCommand::class,
+            ]);
         }
     }
 
